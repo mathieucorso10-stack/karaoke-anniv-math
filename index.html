@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎤 Karaoké Anniv</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080810;
+      --surface: #10101e;
+      --surface2: #18182c;
+      --border: #252540;
+      --accent: #ff3cac;
+      --accent2: #784ba0;
+      --accent3: #2b86c5;
+      --text: #f0f0f8;
+      --muted: #5a5a7a;
+      --success: #00e5a0;
+      --warning: #ffb547;
+      --danger: #ff5050;
+      --gradient: linear-gradient(135deg, #ff3cac 0%, #784ba0 50%, #2b86c5 100%);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+    /* AMBIENT */
+    .ambient {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 15% 15%, rgba(255,60,172,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 85% 85%, rgba(43,134,197,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 60% at 50% 50%, rgba(120,75,160,0.04) 0%, transparent 70%);
+      animation: amb 15s ease-in-out infinite alternate;
+    }
+    @keyframes amb { 0% { opacity: 0.8; } 100% { opacity: 1; } }
+
+    .app { position: relative; z-index: 1; }
+
+    /* SCREENS */
+    .screen { display: none; min-height: 100vh; }
+    .screen.active { display: flex; flex-direction: column; }
+    .screen-center { align-items: center; justify-content: center; padding: 24px; }
+
+    /* ── WELCOME ── */
+    #screen-welcome { text-align: center; gap: 40px; }
+    .hero { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+    .mic-wrap {
+      position: relative; width: 100px; height: 100px;
+    }
+    .mic-wrap::before, .mic-wrap::after {
+      content: ''; position: absolute; inset: -8px; border-radius: 50%;
+      border: 1px solid rgba(255,60,172,0.3);
+      animation: ripple 2.5s ease-out infinite;
+    }
+    .mic-wrap::after { animation-delay: 1.25s; }
+    @keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0; } }
+    .mic-circle {
+      width: 100px; height: 100px; border-radius: 50%;
+      background: var(--gradient);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px;
+      box-shadow: 0 0 50px rgba(255,60,172,0.4);
+      position: relative; z-index: 1;
+    }
+    .app-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(60px, 15vw, 110px);
+      letter-spacing: 6px;
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      line-height: 0.9;
+    }
+    .app-sub { color: var(--muted); font-size: 13px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; }
+
+    .welcome-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 32px 28px;
+      width: 100%; max-width: 380px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .field-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px; display: block; }
+    .input-field {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text);
+      font-family: 'Inter', sans-serif; font-size: 16px;
+      padding: 14px 18px; width: 100%;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field::placeholder { color: var(--muted); }
+    .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,60,172,0.12); }
+
+    .btn { border: none; border-radius: 12px; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; padding: 15px 24px; transition: all 0.2s; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-grad { background: var(--gradient); color: #fff; }
+    .btn-grad:not(:disabled):hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 8px 28px rgba(255,60,172,0.35); }
+    .btn-grad:not(:disabled):active { transform: translateY(0); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); background: rgba(255,60,172,0.06); }
+    .btn-danger { background: rgba(255,80,80,0.12); border: 1px solid rgba(255,80,80,0.3); color: var(--danger); }
+    .btn-danger:hover { background: rgba(255,80,80,0.2); }
+
+    /* ── ADMIN SCREEN ── */
+    #screen-admin { align-items: center; justify-content: center; padding: 24px; }
+    .admin-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+      max-width: 440px; width: 100%;
+      display: flex; flex-direction: column; gap: 20px; align-items: center;
+      text-align: center;
+    }
+    .badge { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; border-radius: 20px; }
+    .badge-admin { background: rgba(255,60,172,0.12); border: 1px solid rgba(255,60,172,0.3); color: var(--accent); }
+    .badge-success { background: rgba(0,229,160,0.12); border: 1px solid rgba(0,229,160,0.3); color: var(--success); }
+    .admin-title { font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 3px; }
+    .admin-desc { color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .link-box {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      font-size: 12px; color: var(--muted); line-height: 1.7;
+      width: 100%; word-break: break-all; text-align: left;
+    }
+
+    /* ── WAITING ── */
+    #screen-waiting { align-items: center; justify-content: center; padding: 24px; }
+    .waiting-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; padding: 36px 32px;
+      max-width: 360px; width: 100%;
+      text-align: center; display: flex; flex-direction: column; gap: 16px; align-items: center;
+    }
+    .waiting-icon { font-size: 52px; }
+    .waiting-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 2px; }
+    .waiting-desc { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      width: 100%; background: rgba(16,16,30,0.9);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(16px);
+    }
+    .topbar-brand { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 3px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+    .avatar { width: 34px; height: 34px; background: var(--gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .topbar-name { font-size: 14px; font-weight: 500; }
+    .admin-pill { background: rgba(255,60,172,0.12); border: 1px solid rgba(255,60,172,0.25); color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: 1px; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; }
+
+    /* ── STATS BAR ── */
+    .stats-bar {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    }
+    .stat { display: flex; align-items: center; gap: 8px; }
+    .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+    .stat-sep { width: 1px; height: 28px; background: var(--border); }
+
+    /* ── TABS ── */
+    .tabs { display: flex; border-bottom: 1px solid var(--border); background: var(--surface); }
+    .tab { flex: 1; padding: 14px 8px; text-align: center; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: color 0.2s, border-color 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Inter', sans-serif; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab:hover:not(.active) { color: var(--text); }
+
+    /* ── CONTENT ── */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .page-content { max-width: 680px; margin: 0 auto; padding: 28px 20px; display: flex; flex-direction: column; gap: 24px; }
+
+    /* ── ADD FORM ── */
+    .add-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+    .add-title { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px; }
+    .add-desc { font-size: 13px; color: var(--muted); margin-top: -8px; }
+
+    /* ── SONG ITEMS ── */
+    .section-head { display: flex; align-items: center; justify-content: space-between; }
+    .section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); }
+    .songs-list { display: flex; flex-direction: column; gap: 8px; }
+    .song-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 14px;
+      animation: fadeUp 0.3s ease;
+      transition: border-color 0.2s;
+    }
+    .song-card:hover { border-color: rgba(255,60,172,0.25); }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .song-num { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--muted); min-width: 28px; text-align: center; }
+    .song-thumb { width: 52px; height: 37px; border-radius: 6px; object-fit: cover; flex-shrink: 0; background: var(--surface2); }
+    .song-info { flex: 1; min-width: 0; }
+    .song-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .song-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .song-status { font-size: 10px; font-weight: 600; padding: 4px 10px; border-radius: 20px; flex-shrink: 0; white-space: nowrap; }
+    .song-status.adding { background: rgba(255,60,172,0.12); color: var(--accent); }
+    .song-status.done { background: rgba(0,229,160,0.12); color: var(--success); }
+    .song-status.error { background: rgba(255,80,80,0.12); color: var(--danger); }
+    .btn-delete { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 16px; padding: 4px; border-radius: 6px; transition: color 0.2s, background 0.2s; flex-shrink: 0; }
+    .btn-delete:hover { color: var(--danger); background: rgba(255,80,80,0.1); }
+
+    /* ── LEADERBOARD ── */
+    .leaderboard { display: flex; flex-direction: column; gap: 8px; }
+    .lb-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 18px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .lb-rank { font-family: 'Bebas Neue', sans-serif; font-size: 28px; min-width: 32px; text-align: center; }
+    .lb-rank.gold { color: #ffd700; }
+    .lb-rank.silver { color: #c0c0c0; }
+    .lb-rank.bronze { color: #cd7f32; }
+    .lb-rank.other { color: var(--muted); font-size: 20px; }
+    .lb-name { font-size: 15px; font-weight: 600; flex: 1; }
+    .lb-count { font-family: 'Bebas Neue', sans-serif; font-size: 22px; background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .lb-label { font-size: 11px; color: var(--muted); }
+
+    /* ── QUEUE ── */
+    .queue-list { display: flex; flex-direction: column; gap: 8px; }
+    .queue-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .queue-pos { font-family: 'Bebas Neue', sans-serif; font-size: 24px; color: var(--muted); min-width: 32px; text-align: center; }
+    .queue-pos.now { background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+    /* ── ADMIN PANEL ── */
+    .admin-song-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .drag-handle { color: var(--muted); cursor: grab; font-size: 18px; padding: 0 4px; user-select: none; }
+    .drag-handle:active { cursor: grabbing; }
+    .admin-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-icon { background: none; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 15px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .btn-icon:hover { border-color: var(--danger); color: var(--danger); background: rgba(255,80,80,0.08); }
+
+    /* ── EXPORT ── */
+    .export-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+
+    /* ── EMPTY ── */
+    .empty { text-align: center; padding: 40px 20px; color: var(--muted); }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .empty-text { font-size: 14px; line-height: 1.6; }
+
+    /* ── TOAST ── */
+    .toast-wrap { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+    .toast { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 12px 22px; font-size: 13px; font-weight: 500; animation: tin 0.3s ease, tout 0.3s ease 2.7s forwards; white-space: nowrap; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .toast.success { border-color: var(--success); color: var(--success); }
+    .toast.error { border-color: var(--danger); color: var(--danger); }
+    .toast.info { border-color: var(--accent); color: var(--accent); }
+    @keyframes tin { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes tout { to { opacity: 0; } }
+
+    /* ── CONFETTI ── */
+    .confetti-piece { position: fixed; width: 10px; height: 10px; top: -10px; animation: fall linear forwards; pointer-events: none; z-index: 300; border-radius: 2px; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+
+    /* ── SPINNER ── */
+    .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-row { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 24px; color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 480px) {
+      .page-content { padding: 20px 14px; }
+      .topbar { padding: 12px 16px; }
+      .stats-bar { padding: 10px 16px; gap: 16px; }
+      .topbar-name { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="ambient"></div>
+<div class="app">
+
+  <!-- WELCOME -->
+  <div class="screen screen-center active" id="screen-welcome">
+    <div class="hero">
+      <div class="mic-wrap"><div class="mic-circle">🎤</div></div>
+      <div class="app-title">KARAOKÉ</div>
+      <div class="app-sub">Soirée Anniv 🎉</div>
+    </div>
+    <div class="welcome-card">
+      <div>
+        <label class="field-label">Ton prénom</label>
+        <input class="input-field" id="input-name" type="text" placeholder="Ex : Marie" autocomplete="off" maxlength="30" />
+      </div>
+      <button class="btn btn-grad" id="btn-start" disabled>C'est parti 🎶</button>
+    </div>
+  </div>
+
+  <!-- ADMIN SCREEN (après OAuth) -->
+  <div class="screen screen-center" id="screen-admin">
+    <div class="admin-card">
+      <div style="font-size:52px">🎛️</div>
+      <span class="badge badge-admin">Mode Admin</span>
+      <div class="admin-title">App prête ! 🎉</div>
+      <div class="admin-desc">Copie ce lien et envoie-le sur le groupe WhatsApp. Les invités entrent juste leur prénom, pas de connexion Google.</div>
+      <div class="link-box" id="share-link-box">Génération…</div>
+      <button class="btn btn-outline" id="btn-copy-link">📋 Copier le lien</button>
+      <button class="btn btn-grad" id="btn-admin-enter">Accéder à l'app →</button>
+    </div>
+  </div>
+
+  <!-- WAITING (invité sans token) -->
+  <div class="screen screen-center" id="screen-waiting">
+    <div class="waiting-card">
+      <div class="waiting-icon">⏳</div>
+      <div class="waiting-title">Pas encore prêt</div>
+      <div class="waiting-desc">Demande à Mathieu d'envoyer le bon lien sur le groupe WhatsApp !</div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="screen" id="screen-main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-brand">🎤 KARAOKÉ</div>
+      <div class="topbar-right">
+        <span class="admin-pill" id="admin-pill" style="display:none">Admin</span>
+        <div class="avatar" id="top-avatar">?</div>
+        <div class="topbar-name" id="top-name">—</div>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-num" id="stat-songs">0</div>
+        <div class="stat-label">chansons</div>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <div class="stat-num" id="stat-people">0</div>
+        <div class="stat-label">participants</div>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="stat">
+        <div class="stat-num" id="stat-mine">0</div>
+        <div class="stat-label">mes chansons</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="tab-add">➕ Ajouter</button>
+      <button class="tab" data-tab="tab-queue">📋 File d'attente</button>
+      <button class="tab" data-tab="tab-ranking">🏆 Classement</button>
+      <button class="tab" data-tab="tab-admin" id="tab-admin-btn" style="display:none">👑 Admin</button>
+    </div>
+
+    <!-- TAB: ADD -->
+    <div class="tab-content active" id="tab-add">
+      <div class="page-content">
+        <div class="add-card">
+          <div class="add-title">Ajoute ta chanson 🎵</div>
+          <div class="add-desc">Entre le titre et l'artiste, on trouve la meilleure version karaoké automatiquement.</div>
+          <div>
+            <label class="field-label">Titre de la chanson</label>
+            <input class="input-field" id="song-title" type="text" placeholder="Ex : Bohemian Rhapsody" autocomplete="off" />
+          </div>
+          <div>
+            <label class="field-label">Artiste <span style="color:var(--muted);font-weight:400">(optionnel)</span></label>
+            <input class="input-field" id="song-artist" type="text" placeholder="Ex : Queen" autocomplete="off" />
+          </div>
+          <button class="btn btn-grad" id="btn-add">Ajouter à la playlist ➕</button>
+        </div>
+
+        <div id="my-songs-section" style="display:none">
+          <div class="section-head" style="margin-bottom:12px">
+            <div class="section-label">Mes chansons</div>
+          </div>
+          <div class="songs-list" id="my-songs-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: QUEUE -->
+    <div class="tab-content" id="tab-queue">
+      <div class="page-content">
+        <div class="section-label" style="margin-bottom:12px">Toutes les chansons · en temps réel</div>
+        <div class="queue-list" id="queue-list">
+          <div class="loading-row"><div class="spinner"></div> Chargement…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RANKING -->
+    <div class="tab-content" id="tab-ranking">
+      <div class="page-content">
+        <div class="section-label" style="margin-bottom:12px">Qui a ajouté le plus de chansons ?</div>
+        <div class="leaderboard" id="leaderboard-list">
+          <div class="loading-row"><div class="spinner"></div> Chargement…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ADMIN -->
+    <div class="tab-content" id="tab-admin">
+      <div class="page-content">
+        <div class="export-card">
+          <div class="section-label">Export</div>
+          <p style="font-size:13px;color:var(--muted)">Télécharge la liste complète des chansons en fichier Excel.</p>
+          <button class="btn btn-outline" id="btn-export">📊 Exporter en Excel</button>
+        </div>
+
+        <div>
+          <div class="section-head" style="margin-bottom:12px">
+            <div class="section-label">Toutes les chansons · gestion</div>
+          </div>
+          <div class="songs-list" id="admin-songs-list">
+            <div class="loading-row"><div class="spinner"></div> Chargement…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const C = {
+  apiKey:     'AIzaSyARSowOUckq_NbnFl3b2RnlU8QOcATdNug',
+  clientId:   '1031238692497-7jiuh5d0v4as084jkphisj0kgsqtj1hp.apps.googleusercontent.com',
+  playlistId: 'PLzmpVmU1OuzfoDs9tXLT54-ipwGRX-GLQ',
+  scopes:     'https://www.googleapis.com/auth/youtube',
+  adminName:  'mathieu',
+  sheetdb:    'https://sheetdb.io/api/v1/v6n89j0jxsew9',
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let S = {
+  userName: '',
+  isAdmin: false,
+  accessToken: null,
+  allSongs: [],   // depuis SheetDB
+  mySongs: [],    // chansons de cet invité
+  pollTimer: null,
+};
+
+// ═══════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function toast(msg, type = 'info') {
+  const w = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  w.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getTokenFromURL() {
+  return new URLSearchParams(window.location.search).get('t');
+}
+
+function buildShareLink(token) {
+  return window.location.origin + window.location.pathname + '?t=' + encodeURIComponent(token);
+}
+
+function parseISO8601(dur) {
+  const m = dur.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!m) return 0;
+  return (parseInt(m[1]||0)*3600)+(parseInt(m[2]||0)*60)+parseInt(m[3]||0);
+}
+
+function now() { return new Date().toISOString(); }
+
+// ═══════════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════════
+function confetti() {
+  const colors = ['#ff3cac','#784ba0','#2b86c5','#00e5a0','#ffb547','#fff'];
+  for (let i = 0; i < 60; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.cssText = `
+      left:${Math.random()*100}vw;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      width:${6+Math.random()*8}px;
+      height:${6+Math.random()*8}px;
+      border-radius:${Math.random()>0.5?'50%':'2px'};
+      animation-duration:${1.5+Math.random()*2}s;
+      animation-delay:${Math.random()*0.5}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+// ═══════════════════════════════════════════
+// SHEETDB (base de données)
+// ═══════════════════════════════════════════
+async function dbGetAll() {
+  const r = await fetch(C.sheetdb);
+  const d = await r.json();
+  return Array.isArray(d) ? d : [];
+}
+
+async function dbAdd(row) {
+  await fetch(C.sheetdb, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: [row] })
+  });
+}
+
+async function dbDelete(videoId) {
+  await fetch(`${C.sheetdb}/videoId/${encodeURIComponent(videoId)}`, { method: 'DELETE' });
+}
+
+async function dbUpdateStatus(videoId, statut) {
+  await fetch(`${C.sheetdb}/videoId/${encodeURIComponent(videoId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: { statut } })
+  });
+}
+
+// ═══════════════════════════════════════════
+// POLLING temps réel (toutes les 5s)
+// ═══════════════════════════════════════════
+async function poll() {
+  try {
+    const songs = await dbGetAll();
+    S.allSongs = songs;
+    S.mySongs = songs.filter(s => s.prénom?.toLowerCase() === S.userName.toLowerCase());
+    updateStats();
+    renderMySongs();
+    renderQueue();
+    renderLeaderboard();
+    if (S.isAdmin) renderAdminSongs();
+  } catch(e) { /* silencieux */ }
+}
+
+function startPolling() {
+  poll();
+  S.pollTimer = setInterval(poll, 5000);
+}
+
+// ═══════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════
+function updateStats() {
+  const done = S.allSongs.filter(s => s.statut === 'done');
+  const people = [...new Set(S.allSongs.map(s => s.prénom?.toLowerCase()))].filter(Boolean);
+  document.getElementById('stat-songs').textContent = done.length;
+  document.getElementById('stat-people').textContent = people.length;
+  document.getElementById('stat-mine').textContent = S.mySongs.filter(s => s.statut === 'done').length;
+}
+
+// ═══════════════════════════════════════════
+// WELCOME
+// ═══════════════════════════════════════════
+const inputName = document.getElementById('input-name');
+const btnStart  = document.getElementById('btn-start');
+
+const savedName = localStorage.getItem('karaoke_user');
+if (savedName) { inputName.value = savedName; btnStart.disabled = false; }
+
+inputName.addEventListener('input', () => { btnStart.disabled = inputName.value.trim().length < 1; });
+inputName.addEventListener('keydown', e => { if (e.key === 'Enter' && !btnStart.disabled) btnStart.click(); });
+
+btnStart.addEventListener('click', () => {
+  const name = inputName.value.trim();
+  if (!name) return;
+  S.userName = name;
+  localStorage.setItem('karaoke_user', name);
+
+  const urlToken = getTokenFromURL();
+  if (urlToken) {
+    S.accessToken = urlToken;
+    enterMain();
+  } else if (name.toLowerCase() === C.adminName) {
+    startOAuth();
+  } else {
+    showScreen('screen-waiting');
+  }
+});
+
+// ═══════════════════════════════════════════
+// OAUTH
+// ═══════════════════════════════════════════
+function startOAuth() {
+  const p = new URLSearchParams({
+    client_id: C.clientId,
+    redirect_uri: window.location.origin + window.location.pathname,
+    response_type: 'token',
+    scope: C.scopes,
+    include_granted_scopes: 'true',
+  });
+  window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + p;
+}
+
+function handleOAuthCallback() {
+  const hash = window.location.hash;
+  if (!hash.includes('access_token')) return false;
+  const p = new URLSearchParams(hash.substring(1));
+  const token = p.get('access_token');
+  if (!token) return false;
+  S.accessToken = token;
+  history.replaceState(null, '', window.location.pathname);
+  const name = localStorage.getItem('karaoke_user');
+  if (name) S.userName = name;
+
+  const link = buildShareLink(token);
+  document.getElementById('share-link-box').textContent = link;
+  document.getElementById('btn-copy-link').onclick = () => {
+    navigator.clipboard.writeText(link).then(() => toast('✅ Lien copié !', 'success'));
+  };
+  document.getElementById('btn-admin-enter').onclick = () => enterMain(true);
+  showScreen('screen-admin');
+  return true;
+}
+
+// ═══════════════════════════════════════════
+// ENTER MAIN
+// ═══════════════════════════════════════════
+function enterMain(isAdmin = false) {
+  S.isAdmin = isAdmin || S.userName.toLowerCase() === C.adminName;
+  document.getElementById('top-avatar').textContent = S.userName.charAt(0).toUpperCase();
+  document.getElementById('top-name').textContent = S.userName;
+  if (S.isAdmin) {
+    document.getElementById('admin-pill').style.display = 'inline-flex';
+    document.getElementById('tab-admin-btn').style.display = 'flex';
+  }
+  showScreen('screen-main');
+  startPolling();
+}
+
+// ═══════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+    poll(); // refresh immédiat au clic
+  });
+});
+
+// ═══════════════════════════════════════════
+// ADD SONG
+// ═══════════════════════════════════════════
+document.getElementById('btn-add').addEventListener('click', handleAdd);
+document.getElementById('song-title').addEventListener('keydown', e => { if (e.key === 'Enter') handleAdd(); });
+document.getElementById('song-artist').addEventListener('keydown', e => { if (e.key === 'Enter') handleAdd(); });
+
+async function handleAdd() {
+  const titleEl  = document.getElementById('song-title');
+  const artistEl = document.getElementById('song-artist');
+  const title  = titleEl.value.trim();
+  const artist = artistEl.value.trim();
+  if (!title) { toast('Entre le titre de la chanson 🎵', 'error'); return; }
+
+  // Limite : 5 chansons max par personne
+  const myDone = S.mySongs.filter(s => s.statut !== 'error');
+  if (myDone.length >= 5) { toast('Tu as déjà ajouté 5 chansons, c\'est le maximum 😄', 'error'); return; }
+
+  const btn = document.getElementById('btn-add');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Recherche…';
+
+  try {
+    const video = await findBestKaraoke(title, artist);
+    if (!video) { toast('Aucune vidéo karaoké trouvée. Essaie un autre titre.', 'error'); resetBtn(); return; }
+
+    // Doublon dans SheetDB ?
+    const existing = S.allSongs.find(s => s.videoId === video.videoId);
+    let finalVideo = video;
+    if (existing) {
+      toast('Déjà dans la playlist, on cherche une alternative…', 'info');
+      finalVideo = await findBestKaraoke(title, artist, video.videoId);
+      if (!finalVideo) { toast('Cette chanson est déjà dans la playlist !', 'error'); resetBtn(); return; }
+    }
+
+    // Ajout optimiste dans SheetDB
+    const row = {
+      prénom: S.userName,
+      chanson: finalVideo.title,
+      artiste: finalVideo.channel,
+      videoId: finalVideo.videoId,
+      thumb: finalVideo.thumb,
+      statut: 'adding',
+      timestamp: now(),
+    };
+    await dbAdd(row);
+    titleEl.value = ''; artistEl.value = '';
+    poll();
+
+    // Ajout YouTube
+    await addToYouTube(finalVideo.videoId);
+    await dbUpdateStatus(finalVideo.videoId, 'done');
+    confetti();
+    toast('✅ Ajoutée à la playlist !', 'success');
+    poll();
+
+  } catch(e) {
+    toast('Erreur : ' + (e.message || 'inconnue'), 'error');
+  }
+  resetBtn();
+}
+
+function resetBtn() {
+  const btn = document.getElementById('btn-add');
+  btn.disabled = false;
+  btn.innerHTML = 'Ajouter à la playlist ➕';
+}
+
+// ═══════════════════════════════════════════
+// FIND BEST KARAOKE VIDEO
+// ═══════════════════════════════════════════
+async function findBestKaraoke(title, artist, excludeId = null) {
+  const q = encodeURIComponent(`${title} ${artist} karaoké`);
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&videoDuration=medium&q=${q}&key=${C.apiKey}`;
+  const r = await fetch(url);
+  const d = await r.json();
+  if (!d.items?.length) return null;
+
+  const ids = d.items.map(i => i.id.videoId).filter(id => id && id !== excludeId).join(',');
+  if (!ids) return null;
+
+  const dr = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails,snippet&id=${ids}&key=${C.apiKey}`);
+  const dd = await dr.json();
+
+  const valid = (dd.items||[]).filter(v => parseISO8601(v.contentDetails.duration) > 90);
+  if (!valid.length) return null;
+
+  const best = valid[0];
+  return {
+    videoId: best.id,
+    title: best.snippet.title,
+    channel: best.snippet.channelTitle,
+    thumb: best.snippet.thumbnails?.default?.url || '',
+  };
+}
+
+// ═══════════════════════════════════════════
+// YOUTUBE
+// ═══════════════════════════════════════════
+async function addToYouTube(videoId) {
+  const r = await fetch('https://www.googleapis.com/youtube/v3/playlistItems?part=snippet', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + S.accessToken, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ snippet: { playlistId: C.playlistId, resourceId: { kind: 'youtube#video', videoId } } })
+  });
+  if (!r.ok) {
+    if (r.status === 401) throw new Error('Session expirée. Mathieu doit partager un nouveau lien.');
+    const e = await r.json();
+    throw new Error(e.error?.message || 'Erreur YouTube');
+  }
+}
+
+async function removeFromYouTube(videoId) {
+  // On trouve l'ID de l'item playlist
+  const r = await fetch(`https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${C.playlistId}&key=${C.apiKey}`);
+  const d = await r.json();
+  const item = (d.items||[]).find(i => i.snippet.resourceId.videoId === videoId);
+  if (!item) return;
+  await fetch(`https://www.googleapis.com/youtube/v3/playlistItems/${item.id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': 'Bearer ' + S.accessToken }
+  });
+}
+
+// ═══════════════════════════════════════════
+// RENDER : MES CHANSONS
+// ═══════════════════════════════════════════
+function renderMySongs() {
+  const section = document.getElementById('my-songs-section');
+  const list    = document.getElementById('my-songs-list');
+  if (!S.mySongs.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = '';
+  [...S.mySongs].reverse().forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'song-card';
+    const sLabel = s.statut === 'adding' ? '⏳ Ajout…' : s.statut === 'done' ? '✅ Ajoutée' : '❌ Erreur';
+    const sClass = s.statut === 'adding' ? 'adding' : s.statut === 'done' ? 'done' : 'error';
+    el.innerHTML = `
+      <div class="song-num">${S.mySongs.length - i}</div>
+      ${s.thumb ? `<img class="song-thumb" src="${esc(s.thumb)}" alt="" />` : ''}
+      <div class="song-info">
+        <div class="song-title">${esc(s.chanson)}</div>
+        <div class="song-meta">${esc(s.artiste)}</div>
+      </div>
+      <span class="song-status ${sClass}">${sLabel}</span>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════
+// RENDER : FILE D'ATTENTE
+// ═══════════════════════════════════════════
+function renderQueue() {
+  const list = document.getElementById('queue-list');
+  const done = S.allSongs.filter(s => s.statut === 'done');
+  if (!done.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">🎵</div><div class="empty-text">Aucune chanson pour l\'instant.<br>Sois le premier à en ajouter !</div></div>'; return; }
+  list.innerHTML = '';
+  done.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'queue-card';
+    const posClass = i === 0 ? 'now' : '';
+    el.innerHTML = `
+      <div class="queue-pos ${posClass}">${i + 1}</div>
+      ${s.thumb ? `<img class="song-thumb" src="${esc(s.thumb)}" alt="" />` : ''}
+      <div class="song-info">
+        <div class="song-title">${esc(s.chanson)}</div>
+        <div class="song-meta">Ajouté par ${esc(s.prénom)}</div>
+      </div>
+      ${i === 0 ? '<span class="badge badge-success">Next 🎤</span>' : ''}
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════
+// RENDER : CLASSEMENT
+// ═══════════════════════════════════════════
+function renderLeaderboard() {
+  const list = document.getElementById('leaderboard-list');
+  const done = S.allSongs.filter(s => s.statut === 'done');
+  if (!done.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">🏆</div><div class="empty-text">Le classement apparaîtra ici dès que des chansons seront ajoutées.</div></div>'; return; }
+
+  const counts = {};
+  done.forEach(s => { const n = s.prénom||'?'; counts[n] = (counts[n]||0)+1; });
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
+  list.innerHTML = '';
+  sorted.forEach(([name, count], i) => {
+    const el = document.createElement('div');
+    el.className = 'lb-item';
+    const rankClass = i===0?'gold':i===1?'silver':i===2?'bronze':'other';
+    const medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+    el.innerHTML = `
+      <div class="lb-rank ${rankClass}">${medal}</div>
+      <div class="lb-name">${esc(name)}</div>
+      <div style="text-align:right">
+        <div class="lb-count">${count}</div>
+        <div class="lb-label">chanson${count>1?'s':''}</div>
+      </div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════
+// RENDER : ADMIN
+// ═══════════════════════════════════════════
+function renderAdminSongs() {
+  const list = document.getElementById('admin-songs-list');
+  if (!S.allSongs.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">Aucune chanson pour l\'instant.</div></div>'; return; }
+  list.innerHTML = '';
+  S.allSongs.forEach((s, i) => {
+    const el = document.createElement('div');
+    el.className = 'admin-song-card';
+    const sClass = s.statut === 'adding' ? 'adding' : s.statut === 'done' ? 'done' : 'error';
+    const sLabel = s.statut === 'adding' ? '⏳' : s.statut === 'done' ? '✅' : '❌';
+    el.innerHTML = `
+      <div class="song-num" style="min-width:24px;font-family:'Bebas Neue';font-size:18px;color:var(--muted)">${i+1}</div>
+      ${s.thumb ? `<img class="song-thumb" src="${esc(s.thumb)}" alt="" />` : ''}
+      <div class="song-info">
+        <div class="song-title">${esc(s.chanson)}</div>
+        <div class="song-meta">Ajouté par <strong>${esc(s.prénom)}</strong> · ${sLabel}</div>
+      </div>
+      <button class="btn-icon" data-id="${esc(s.videoId)}" title="Supprimer">🗑️</button>
+    `;
+    el.querySelector('.btn-icon').addEventListener('click', async (e) => {
+      const vid = e.currentTarget.dataset.id;
+      if (!confirm('Supprimer cette chanson de la playlist YouTube et de la liste ?')) return;
+      try {
+        await removeFromYouTube(vid);
+        await dbDelete(vid);
+        toast('🗑️ Chanson supprimée', 'success');
+        poll();
+      } catch(err) { toast('Erreur suppression : ' + err.message, 'error'); }
+    });
+    list.appendChild(el);
+  });
+}
+
+// ═══════════════════════════════════════════
+// EXPORT EXCEL
+// ═══════════════════════════════════════════
+document.getElementById('btn-export').addEventListener('click', exportExcel);
+
+function exportExcel() {
+  const done = S.allSongs.filter(s => s.statut === 'done');
+  if (!done.length) { toast('Aucune chanson à exporter', 'error'); return; }
+
+  // Construit un fichier CSV bien formaté (Excel l'ouvre nativement)
+  const BOM = '\uFEFF';
+  const headers = ['#', 'Chanson', 'Chaîne YouTube', 'Ajouté par', 'Lien YouTube', 'Heure'];
+  const rows = done.map((s, i) => [
+    i + 1,
+    `"${(s.chanson||'').replace(/"/g,'""')}"`,
+    `"${(s.artiste||'').replace(/"/g,'""')}"`,
+    `"${(s.prénom||'').replace(/"/g,'""')}"`,
+    `"https://youtube.com/watch?v=${s.videoId}"`,
+    `"${s.timestamp ? new Date(s.timestamp).toLocaleString('fr-FR') : ''}"`,
+  ].join(';'));
+
+  const csv = BOM + headers.join(';') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'karaoke-anniv.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast('📊 Export téléchargé !', 'success');
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+if (!handleOAuthCallback()) {
+  const urlToken  = getTokenFromURL();
+  const savedName = localStorage.getItem('karaoke_user');
+  if (urlToken && savedName) {
+    S.userName = savedName;
+    S.accessToken = urlToken;
+    enterMain();
+  } else {
+    showScreen('screen-welcome');
+  }
+}
+</script>
+</body>
+</html>
